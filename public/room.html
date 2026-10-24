@@ -2,35 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Court Session</title>
     <style>
         body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; }
         #root { width: 100vw; height: 100vh; }
     </style>
-    <!-- Using jsDelivr CDN which is generally more stable than unpkg -->
-    <script src="https://cdn.jsdelivr.net/npm/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <!-- Point to your local server libs -->
+    <script src="/libs/zego-uikit-prebuilt.js"></script>
 </head>
 <body>
     <div id="root"></div>
 
     <script>
-        // Use a small delay to ensure the browser has parsed the CDN script
         window.addEventListener('load', function() {
             if (typeof ZegoUIKitPrebuilt === 'undefined') {
-                document.body.innerHTML = "<h2 style='color:white; text-align:center; padding-top:50px;'>Library failed to load. Please check your network connection.</h2>";
+                document.body.innerHTML = "<h2 style='color:white; text-align:center;'>System Error: Local library failed to load. Check server logs.</h2>";
                 return;
             }
 
             const urlParams = new URLSearchParams(window.location.search);
-            const roomID = urlParams.get('roomID') || "court_room_001";
+            const roomID = urlParams.get('roomID') || "default_room";
 
-            // YOUR CREDENTIALS
-            const appID = 123456789; // Ensure this is a number (no quotes)
-            const serverSecret = "your_32_char_secret_here"; // Ensure this is a string
+            const appID = 123456789; // REPLACE WITH YOUR NUMBER
+            const serverSecret = "your_32_char_secret"; // REPLACE WITH YOUR SECRET
 
             const userID = "user_" + Math.floor(Math.random() * 1000000);
-            const userName = prompt("Please enter your name for the court record:") || "Court Participant";
+            const userName = prompt("Enter your Name for the record:") || "Participant";
 
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
 
