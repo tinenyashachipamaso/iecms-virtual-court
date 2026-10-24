@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Court Session</title>
     <style>
         body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; }
         #root { width: 100vw; height: 100vh; }
     </style>
-    <!-- Load the library in the head -->
-    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    <!-- Using jsDelivr CDN which is generally more stable than unpkg -->
+    <script src="https://cdn.jsdelivr.net/npm/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
 </head>
 <body>
     <div id="root"></div>
 
     <script>
-        window.onload = function() {
-            // 1. Check if library loaded
+        // Use a small delay to ensure the browser has parsed the CDN script
+        window.addEventListener('load', function() {
             if (typeof ZegoUIKitPrebuilt === 'undefined') {
-                document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Error: Zego library failed to load. Check internet connection.</h2>";
+                document.body.innerHTML = "<h2 style='color:white; text-align:center; padding-top:50px;'>Library failed to load. Please check your network connection.</h2>";
                 return;
             }
 
-            // 2. Extract Room ID
             const urlParams = new URLSearchParams(window.location.search);
-            const roomID = urlParams.get('roomID') || "default_court_room";
+            const roomID = urlParams.get('roomID') || "court_room_001";
 
-            // 3. Configuration (REPLACE THESE)
-            const appID = 123456789; // Must be a number
-            const serverSecret = "your_32_char_secret_here"; // Must be a string
+            // YOUR CREDENTIALS
+            const appID = 123456789; // Ensure this is a number (no quotes)
+            const serverSecret = "your_32_char_secret_here"; // Ensure this is a string
 
             const userID = "user_" + Math.floor(Math.random() * 1000000);
-            const userName = prompt("Enter your Name and Role:") || "Participant";
+            const userName = prompt("Please enter your name for the court record:") || "Court Participant";
 
-            // 4. Generate Token
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
 
-            // 5. Initialize
             const zp = ZegoUIKitPrebuilt.create(kitToken);
             zp.joinRoom({
                 container: document.querySelector("#root"),
-                sharedLinks: [{ name: 'Invite Link', url: window.location.href }],
                 scenario: { mode: ZegoUIKitPrebuilt.GroupCall },
+                turnOnCameraWhenJoining: false,
+                turnOnMicrophoneWhenJoining: false,
             });
-        };
+        });
     </script>
 </body>
 </html>
