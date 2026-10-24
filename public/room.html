@@ -1,62 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Virtual Court Session</title>
-    <style>
-        body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; }
-        #root { width: 100vw; height: 100vh; }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
+<script>
+    // 1. Extract Room ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomID = urlParams.get('roomID');
 
-    <!-- Import ZegoCloud Prebuilt UI -->
-    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+    if (!roomID) {
+        document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px;'>Invalid Meeting Link.</h2>";
+        throw new Error("No room ID");
+    }
 
-    <script>
-        // 1. Extract Room ID from the URL the user clicked
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomID = urlParams.get('roomID');
-        const caseNumber = urlParams.get('case') || 'Virtual Court';
+    // 2. Configuration - Ensure AppID is a Number, NOT a string
+    const appID = 123456789; // REPLACE WITH YOUR ACTUAL NUMBER
+    const serverSecret = "your_32_char_secret_here"; // REPLACE WITH YOUR SECRET
 
-        if (!roomID) {
-            document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px;'>Invalid Meeting Link. Please request a new link from the court clerk.</h2>";
-            throw new Error("No room ID");
-        }
+    // 3. User Setup
+    let userName = prompt("Enter your Name and Role:");
+    if (!userName) userName = "Guest_" + Math.floor(Math.random() * 1000);
+    const userID = "user_" + Math.floor(Math.random() * 1000000);
 
-        // 2. Setup ZegoCloud (REPLACE THESE TWO LINES WITH YOUR KEYS)
-        const appID = 123456789; // Replace with your AppID (Must be a number without quotes)
-        const serverSecret = "abcdef1234567890abcdef1234567890"; // Replace with your ServerSecret (Keep the quotes)
+    // 4. Debugging - Check if keys are loaded correctly
+    console.log("AppID Type:", typeof appID); // Should be 'number'
+    console.log("RoomID:", roomID);
 
-        // 3. Ask the user for their name to display in the call
-        let userName = prompt("Welcome to the Virtual Court. Please enter your Full Name and Role (e.g., 'John Doe - Defense Lawyer'):");
-        if (!userName) userName = "Guest Participant";
+    // 5. Generate Token
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+        appID,
+        serverSecret,
+        roomID,
+        userID,
+        userName
+    );
 
-        // Generate a random ID for this specific user
-        const userID = Math.floor(Math.random() * 10000).toString();
-
-        // 4. Generate the access token
-        const kitToken =  ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
-
-        // 5. Initialize the Video Call UI
-        const zp = ZegoUIKitPrebuilt.create(kitToken);
-
-        zp.joinRoom({
-            container: document.querySelector("#root"),
-            sharedLinks: [{
-                name: 'Invite Link',
-                url: window.location.href,
-            }],
-            scenario: {
-                mode: ZegoUIKitPrebuilt.GroupCall, // Group call allows many people in the room
-            },
-            showScreenSharingButton: true,
-            turnOnCameraWhenJoining: false, // Start with camera off for privacy
-            turnOnMicrophoneWhenJoining: false, // Start with mic off
-            branding: {
-                logoURL: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Coat_of_arms_of_Zimbabwe.svg/100px-Coat_of_arms_of_Zimbabwe.svg.png' // Adds a crest to the top left
-            }
-        });
-    </script>
-</body>
-</html>
+    // 6. Initialize
+    const zp = ZegoUIKitPrebuilt.create(kitToken);
+    zp.joinRoom({
+        container: document.querySelector("#root"),
+        scenario: { mode: ZegoUIKitPrebuilt.GroupCall },
+        showScreenSharingButton: true,
+        turnOnCameraWhenJoining: false,
+        turnOnMicrophoneWhenJoining: false,
+    });
+</script>
