@@ -7,8 +7,8 @@
         body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; }
         #root { width: 100vw; height: 100vh; }
     </style>
-    <!-- Point to your local server libs -->
-    <script src="/libs/zego-uikit-prebuilt.js"></script>
+    <!-- Use the official GitHub pages CDN -->
+    <script src="https://zegocloud.github.io/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
 </head>
 <body>
     <div id="root"></div>
@@ -16,15 +16,16 @@
     <script>
         window.addEventListener('load', function() {
             if (typeof ZegoUIKitPrebuilt === 'undefined') {
-                document.body.innerHTML = "<h2 style='color:white; text-align:center;'>System Error: Local library failed to load. Check server logs.</h2>";
+                document.body.innerHTML = "<h2 style='color:white; text-align:center;'>System Error: Zego library could not be loaded.</h2>";
                 return;
             }
 
             const urlParams = new URLSearchParams(window.location.search);
-            const roomID = urlParams.get('roomID') || "default_room";
+            const roomID = urlParams.get('roomID') || "court_room_default";
 
-            const appID = 123456789; // REPLACE WITH YOUR NUMBER
-            const serverSecret = "your_32_char_secret"; // REPLACE WITH YOUR SECRET
+            // REPLACE WITH YOUR CREDENTIALS
+            const appID = 123456789;
+            const serverSecret = "your_32_char_secret";
 
             const userID = "user_" + Math.floor(Math.random() * 1000000);
             const userName = prompt("Enter your Name for the record:") || "Participant";
