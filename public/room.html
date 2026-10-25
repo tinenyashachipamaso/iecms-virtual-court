@@ -1,42 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Virtual Court Session</title>
-    <!-- 1. Try to load from jsDelivr CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
-    <style>
-        body { margin: 0; background: #222; color: white; }
-        #root { width: 100vw; height: 100vh; }
-    </style>
+    <script src="https://cdn.zegocloud.com/zegouikit/prebuilt/zego-uikit-prebuilt.js"></script>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root" style="width: 100vw; height: 100vh;"></div>
     <script>
-        window.addEventListener('load', function() {
-            // Check if Zego loaded successfully
-            if (typeof ZegoUIKitPrebuilt === 'undefined') {
-                document.body.innerHTML = "<h2 style='text-align:center;'>Library failed to load. Please enable VPN.</h2>";
-                return;
-            }
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomID = urlParams.get('roomID') || "default_court";
-
-            // --- YOUR CREDENTIALS ---
-            const appID = 123456789;
-            const serverSecret = "your_32_char_secret_here";
-
-            const userID = "user_" + Math.floor(Math.random() * 1000000);
-            const userName = prompt("Enter Name:") || "Participant";
-
-            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
-            const zp = ZegoUIKitPrebuilt.create(kitToken);
-
-            zp.joinRoom({
-                container: document.querySelector("#root"),
-                scenario: { mode: ZegoUIKitPrebuilt.GroupCall }
-            });
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const appID = 123456789; // REPLACE
+            const secret = "your_secret_here"; // REPLACE
+            const token = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, secret, params.get('roomID'), Math.random().toString(), "Participant");
+            ZegoUIKitPrebuilt.create(token).joinRoom({ container: document.querySelector("#root"), scenario: { mode: ZegoUIKitPrebuilt.GroupCall }});
         });
     </script>
 </body>
