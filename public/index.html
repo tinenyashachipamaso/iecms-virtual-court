@@ -2,33 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IECMS Virtual Court</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IECMS - Virtual Court Sessions</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="top-nav"><h2>IECMS Integrated Electronic Case Management System</h2></div>
+    <div class="top-nav">
+        <h2>IECMS Integrated Electronic Case Management System</h2>
+    </div>
+
     <div class="main-container">
         <div class="card">
-            <h3>Create Virtual Session</h3>
+            <h3>Create New Virtual Session</h3>
             <form id="sessionForm">
+                <label>Case Number:</label>
                 <input type="text" id="caseNumber" value="HCHCR38/26" required>
+
+                <label>Hearing Date & Time:</label>
+                <input type="datetime-local" id="date" required>
+
                 <button type="submit" class="btn-create">Generate Link</button>
             </form>
+
             <div id="linkContainer" class="hidden">
+                <h4 style="color: #1e7040;">✔ Session Created Successfully!</h4>
+                <p>Share this link with the Judge, Lawyers, and Accused:</p>
                 <input type="text" id="generatedLink" readonly>
-                <a href="#" id="joinBtn" class="btn-join" target="_blank">Join Session Now</a>
+                <button type="button" class="btn-copy" onclick="copyLink()">Copy Link</button>
+                <br><br>
+                <a href="#" id="joinBtn" class="btn-join" target="_blank">Join Session Now (Host)</a>
             </div>
         </div>
     </div>
+
     <script>
         document.getElementById('sessionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const res = await fetch('/create-session', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({caseNumber: document.getElementById('caseNumber').value})});
-            const data = await res.json();
+            const caseNumber = document.getElementById('caseNumber').value;
+
+            // Call the Node.js backend to get the link
+            const response = await fetch('/create-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ caseNumber })
+            });
+
+            const data = await response.json();
+
+            // Show the result
             document.getElementById('linkContainer').classList.remove('hidden');
             document.getElementById('generatedLink').value = data.link;
             document.getElementById('joinBtn').href = data.link;
         });
+
+        function copyLink() {
+            const linkInput = document.getElementById('generatedLink');
+            linkInput.select();
+            document.execCommand('copy');
+            alert("Link copied! You can now paste it in an email or WhatsApp.");
+        }
     </script>
 </body>
 </html>

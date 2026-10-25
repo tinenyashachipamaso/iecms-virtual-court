@@ -2,18 +2,63 @@
 <html>
 <head>
     <title>Virtual Court Session</title>
-    <script src="https://cdn.zegocloud.com/zegouikit/prebuilt/zego-uikit-prebuilt.js"></script>
+    <style>
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; }
+        #root { width: 100vw; height: 100vh; }
+    </style>
 </head>
 <body>
-    <div id="root" style="width: 100vw; height: 100vh;"></div>
+    <div id="root"></div>
+
+    <!-- Import ZegoCloud Prebuilt UI -->
+    <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+
     <script>
-        window.addEventListener('load', () => {
-            const params = new URLSearchParams(window.location.search);
-            const appID = 123456789; // REPLACE
-            const secret = "your_secret_here"; // REPLACE
-            const token = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, secret, params.get('roomID'), Math.random().toString(), "Participant");
-            ZegoUIKitPrebuilt.create(token).joinRoom({ container: document.querySelector("#root"), scenario: { mode: ZegoUIKitPrebuilt.GroupCall }});
-        });
+        // 1. Extract Room ID and Case Number from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomID = urlParams.get('roomID');
+        const caseNumber = urlParams.get('case') || 'Virtual Court';
+
+        // Update the tab title to show the case number
+        document.title = caseNumber + " - Live Session";
+
+        // ============================================================
+        // ⚠️ CRITICAL STEP: PUT YOUR REAL ZEGO CREDENTIALS HERE ⚠️
+        // ============================================================
+        const appID = 123456789; // REPLACE THIS NUMBER. NO QUOTES AROUND IT.
+        const serverSecret = "abcdefg1234567890abcdefg"; // REPLACE THIS. KEEP THE QUOTES.
+        // ============================================================
+
+        if (!roomID) {
+            document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px;'>Invalid Meeting Link. Please request a new link from the court clerk.</h2>";
+        } else {
+            // Generate a random ID for this specific user
+            const userID = Math.floor(Math.random() * 10000).toString();
+
+            // Ask user for their name to display in the call
+            let userName = prompt("Welcome to IECMS Virtual Court.\n\nPlease enter your Full Name and Role (e.g., 'John Doe - Defense'):");
+            if (!userName || userName.trim() === "") userName = "Participant_" + userID;
+
+            // Generate the access token
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
+
+            // Initialize the Video Call UI
+            const zp = ZegoUIKitPrebuilt.create(kitToken);
+
+            zp.joinRoom({
+                container: document.querySelector("#root"),
+                sharedLinks: [{
+                    name: 'Invite Link',
+                    url: window.location.href,
+                }],
+                scenario: {
+                    mode: ZegoUIKitPrebuilt.GroupCall, // Group call allows many people
+                },
+                showScreenSharingButton: true,
+                turnOnCameraWhenJoining: false, // Start with camera off for privacy
+                turnOnMicrophoneWhenJoining: false, // Start with mic off
+            });
+        }
     </script>
 </body>
 </html>
