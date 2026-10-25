@@ -2,31 +2,32 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const app = express();
+
+// Define the Port for Render
 const PORT = process.env.PORT || 3000;
 
-// 1. Point to the public folder
-const publicPath = path.join(__dirname, 'public');
-
-// 2. Serve static files from the public folder
-app.use(express.static(publicPath));
-
-// 3. Explicitly route the root URL to index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
-});
+// Serve all files from the 'public' folder
+// This handles index.html, room.html, style.css, and zego-uikit-prebuilt.js automatically
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 
-// 4. API to generate link
+// Explicitly serve index.html for the root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API endpoint to generate meeting links
 app.post('/create-session', (req, res) => {
     const { caseNumber } = req.body;
     const roomID = uuidv4();
-    // Links to room.html which is inside public/
+
+    // Construct URL pointing to the room.html file
     const joinLink = `${req.protocol}://${req.get('host')}/room.html?roomID=${roomID}`;
     res.json({ link: joinLink });
 });
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Serving files from: ${publicPath}`);
+    console.log(`IECMS Server running on port ${PORT}`);
 });
