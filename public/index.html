@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IECMS - Virtual Court Sessions</title>
+    <!-- This points to style.css in the same folder -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,15 +40,12 @@
         document.getElementById('sessionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const caseNumber = document.getElementById('caseNumber').value;
-
             const response = await fetch('/create-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ caseNumber })
             });
-
             const data = await response.json();
-
             document.getElementById('linkContainer').classList.remove('hidden');
             document.getElementById('generatedLink').value = data.link;
             document.getElementById('joinBtn').href = data.link;
@@ -57,7 +55,7 @@
             const linkInput = document.getElementById('generatedLink');
             linkInput.select();
             document.execCommand('copy');
-            alert("Link copied! You can now paste it in an email or WhatsApp.");
+            alert("Link copied!");
         }
     </script>
 </body>
