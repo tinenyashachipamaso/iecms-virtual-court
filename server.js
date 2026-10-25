@@ -1,19 +1,22 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve files from the 'public' directory
+// Serve everything in the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json());
 
+// Explicitly serve the library file to be safe
+app.get('/zego-uikit-prebuilt.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'zego-uikit-prebuilt.js'));
+});
+
 app.post('/create-session', (req, res) => {
     const { caseNumber } = req.body;
     const roomID = uuidv4();
-    // Ensure the link points correctly to the room.html in the public folder
     const joinLink = `${req.protocol}://${req.get('host')}/room.html?roomID=${roomID}`;
     res.json({ link: joinLink });
 });
