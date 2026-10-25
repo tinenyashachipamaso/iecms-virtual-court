@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Court Session</title>
+    <style>
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background: #222; color: white; font-family: sans-serif; }
+        #root { width: 100vw; height: 100vh; }
+        #loading { text-align: center; padding-top: 20%; }
+    </style>
+    <!-- Official high-availability jsDelivr CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
+</head>
+<body>
+    <div id="loading">Connecting to Secure Judicial Infrastructure...</div>
+    <div id="root"></div>
+
+    <script>
+        window.addEventListener('load', function() {
+            // Verify library load
+            if (typeof ZegoUIKitPrebuilt === 'undefined') {
+                document.getElementById('loading').innerHTML = "<h1>Network Restricted</h1><p>Library blocked by network firewall. Please use a VPN or mobile hotspot.</p>";
+                return;
+            }
+            document.getElementById('loading').style.display = 'none';
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomID = urlParams.get('roomID') || "court_room_default";
+
+            // --- YOUR CREDENTIALS ---
+            const appID = 123456789; // Must be a Number
+            const serverSecret = "your_32_char_secret_here"; // Must be a String
+
+            const userID = "user_" + Math.floor(Math.random() * 1000000);
+            const userName = prompt("Enter your Name for the court record:") || "Participant";
+
+            const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
+
+            const zp = ZegoUIKitPrebuilt.create(kitToken);
+            zp.joinRoom({
+                container: document.querySelector("#root"),
+                scenario: { mode: ZegoUIKitPrebuilt.GroupCall },
+                showScreenSharingButton: true,
+                turnOnCameraWhenJoining: false,
+                turnOnMicrophoneWhenJoining: false
+            });
+        });
+    </script>
+</body>
+</html>
