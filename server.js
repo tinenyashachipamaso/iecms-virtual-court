@@ -4,15 +4,10 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve everything in the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve files directly from the root directory
+app.use(express.static(__dirname));
 
 app.use(express.json());
-
-// Explicitly serve the library file to be safe
-app.get('/zego-uikit-prebuilt.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'zego-uikit-prebuilt.js'));
-});
 
 app.post('/create-session', (req, res) => {
     const { caseNumber } = req.body;

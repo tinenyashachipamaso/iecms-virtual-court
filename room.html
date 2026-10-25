@@ -7,25 +7,25 @@
         body { margin: 0; padding: 0; width: 100vw; height: 100vh; background: #222; color: white; }
         #root { width: 100vw; height: 100vh; }
     </style>
-    <!-- Pointing strictly to your own local server -->
-    <script src="/zego-uikit-prebuilt.js"></script>
+    <!-- Relative path: Looks in the same folder -->
+    <script src="zego-uikit-prebuilt.js"></script>
 </head>
 <body>
     <div id="root"></div>
     <script>
         window.addEventListener('load', function() {
             if (typeof ZegoUIKitPrebuilt === 'undefined') {
-                document.body.innerHTML = "<h1 style='text-align:center;'>Error: Library not found locally.</h1>";
+                document.body.innerHTML = "<h2 style='text-align:center;'>Error: zego-uikit-prebuilt.js not found in root.</h2>";
                 return;
             }
             const urlParams = new URLSearchParams(window.location.search);
             const roomID = urlParams.get('roomID') || "court_room";
 
-            const appID = 123456789; // REPLACE WITH YOUR APPID
-            const serverSecret = "your_32_char_secret"; // REPLACE WITH YOUR SECRET
+            const appID = 123456789; // REPLACE
+            const serverSecret = "your_32_char_secret"; // REPLACE
 
             const userID = "user_" + Math.floor(Math.random() * 1000000);
-            const userName = prompt("Enter Name for Court Record:") || "Participant";
+            const userName = prompt("Enter Name:") || "Participant";
 
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
             const zp = ZegoUIKitPrebuilt.create(kitToken);
