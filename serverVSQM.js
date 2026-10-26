@@ -8,54 +8,68 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// --- MEMORY: Array to hold active sessions for VSQM ---
-let activeSessions = [];
+// --- IN-MEMORY DATABASE ---
+let courtRolls = []; // Stores all scheduled cases
 
-// 1. IECMS ROUTE: Create the session
-app.post('/create-session', (req, res) => {
-    const { caseNumber } = req.body;
-    const roomID = uuidv4(); 
-    
+// 1. SCHEDULING API: Schedule a case and enforce the 15 concurrent limit
+app.post('/api/schedule', (req, res) => {
+    const { caseNumber, judge, court, parties, date, slot } = req.body;
+
+    // Check how many sessions are already scheduled for this Date and Slot
+    const concurrentSessions = courtRolls.filter(c => c.date === date && c.slot === slot).length;
+
+    if (concurrentSessions >= 15) {
+        return res.status(400).json({ success: false, message: `Capacity Reached: The ${slot} slot on ${date} already has 15 concurrent sessions.` });
+    }
+
+    const roomID = uuidv4();
     const host = req.get('host');
     const protocol = req.protocol;
     const joinLink = `${protocol}://${host}/room.html?roomID=${roomID}&case=${encodeURIComponent(caseNumber)}`;
 
-    // Save this session to memory so the VSQM dashboard can see it
-    activeSessions.push({ caseNumber, roomID, status: 'Active' });
+    const newCase = { id: roomID, caseNumber, judge, court, parties, date, slot, joinLink, status: 'Scheduled' };
+    courtRolls.push(newCase);
 
-    res.json({ link: joinLink });
+    res.json({ success: true, case: newCase });
 });
 
-// 2. VSQM ROUTE: Secure Login Verification
+// 2. SESSIONS API: Get all scheduled cases
+app.get('/api/sessions', (req, res) => {
+    res.json(courtRolls);
+});
+
+// 3. VSQM API: Secure Login
 app.post('/api/vsqm/login', (req, res) => {
     const { username, password } = req.body;
-    // IT Admin Credentials for the Judiciary
     if (username === 'admin' && password === 'jsc2026') {
         res.json({ success: true, token: 'secure-vsqm-token-888' });
     } else {
-        res.status(401).json({ success: false, message: 'Unauthorized: Invalid Credentials' });
+        res.status(401).json({ success: false, message: 'Invalid Credentials' });
     }
 });
 
-// 3. VSQM ROUTE: Send active sessions to the dashboard
-app.get('/api/vsqm/sessions', (req, res) => {
-    res.json(activeSessions);
-});
+// 4. VSQM API: PARTICIPANT-LEVEL Telemetry Simulation
+app.get('/api/vsqm/telemetry/:id', (req, res) => {
+    // Simulating 3 participants in the court
+    const participants = [
+        { name: "Hon. Judge Ngoshi", role: "Presiding", latency: Math.floor(Math.random() * 20) + 20, loss: 0 },
+        { name: "Tapiwa Chirinda", role: "Plaintiff Counsel", latency: Math.floor(Math.random() * 30) + 40, loss: 0 },
+        { name: "Wilson", role: "Defendant", latency: Math.floor(Math.random() * 300) + 50, loss: (Math.random() * 5).toFixed(1) } // Wilson has bad internet!
+    ];
 
-// 4. VSQM ROUTE: Real-Time Telemetry Data Generator (Mimics XGBoost)
-app.get('/api/vsqm/telemetry', (req, res) => {
-    const latency = Math.floor(Math.random() * (300 - 50 + 1) + 50); // 50ms to 300ms
-    const jitter = Math.floor(Math.random() * 40);
-    const packetLoss = (Math.random() * 8).toFixed(1);
-    
-    let stabilityScore = 98;
-    if (latency > 200 || packetLoss > 4) {
-        stabilityScore = Math.floor(Math.random() * (70 - 40) + 40); // Danger zone
+    let sessionHealth = 98;
+    let nlpLog = `[${new Date().toLocaleTimeString()}] AI Check: All network nodes stable.`;
+
+    // Check Wilson's connection specifically (Predictive Modeling logic)
+    const wilson = participants[2];
+    if (wilson.latency > 200 || wilson.loss > 3) {
+        sessionHealth = Math.floor(Math.random() * 30) + 40; // Health drops
+        nlpLog = `<span style="color:#e94560;">[PREDICTIVE ALERT] ${wilson.name} (${wilson.role}) is experiencing severe packet loss (${wilson.loss}%) and high latency (${wilson.latency}ms). High risk of dropping out of the session. Recommend immediate audio-only fallback.</span>`;
     }
-    
-    res.json({ latency, jitter, packetLoss, stabilityScore });
+
+    res.json({ participants, sessionHealth, nlpLog });
 });
 
 app.listen(PORT, () => {
-    console.log(`VSQM Server running on port ${PORT}`);
+    console.log(`Unified Server running on port ${PORT}`);
 });
