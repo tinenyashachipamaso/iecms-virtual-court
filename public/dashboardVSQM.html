@@ -3,126 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VSQM | Judicial Systems Portal</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <title>VSQM | Judicial Portal</title>
+    <link rel="stylesheet" href="styleVSQM.css">
+    <script>
+        if (sessionStorage.getItem('vsqm_auth') !== 'secure-token') window.location.replace('/loginVSQM.html');
+    </script>
 </head>
 <body>
 
     <div class="top-header">
-        <div class="logo-area">🌍 <strong>VSQM</strong> | JUDICIAL SYSTEMS</div>
-        <div class="time-area" id="clock">Loading Time...</div>
+        <div style="font-size: 20px; font-weight: bold;">🌍 VSQM | JUDICIAL SYSTEMS PORTAL</div>
+        <button onclick="sessionStorage.removeItem('vsqm_auth'); window.location.replace('/loginVSQM.html')" style="background: #e53e3e; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
     </div>
 
     <div class="portal-container">
-
-        <!-- SIDEBAR NAVIGATION -->
+        <!-- SIDEBAR -->
         <div class="sidebar">
             <button class="nav-btn active" onclick="switchTab('scheduling', this)">📝 Submit Court Roll</button>
-            <button class="nav-btn" onclick="switchTab('sessions', this)">📅 Sessions</button>
-            <button class="nav-btn" onclick="switchTab('vsqm', this)">🔒 VSQM (Admin)</button>
+            <button class="nav-btn" onclick="switchTab('sessions', this)">📅 Scheduled Sessions</button>
+            <button class="nav-btn" onclick="switchTab('vsqm', this)">📊 VSQM Analytics</button>
         </div>
 
-        <!-- MAIN CONTENT AREA -->
+        <!-- MAIN CONTENT -->
         <div class="content-area">
 
-            <!-- 1. SCHEDULING DASHBOARD -->
-            <div id="tab-scheduling" class="tab-content active">
+            <!-- SCHEDULING TAB -->
+            <div id="tab-scheduling" class="card" style="display: block;">
                 <h2>Scheduling Dashboard</h2>
-                <div class="card">
-                    <form id="scheduleForm">
-                        <div class="form-grid">
-                            <div><label>Case Number:</label><input type="text" id="caseNum" required></div>
-                            <div><label>Presiding Judge:</label><input type="text" id="judge" required></div>
-                            <div><label>Court Location:</label><input type="text" id="court" required></div>
-                            <div><label>Parties (e.g. State vs Wilson):</label><input type="text" id="parties" required></div>
-                            <div><label>Session Date:</label><input type="date" id="sDate" required></div>
-                            <div>
-                                <label>Time Slot (Max 15/slot):</label>
-                                <select id="sSlot">
-                                    <option value="Morning (9am-11am)">Morning (9am-11am)</option>
-                                    <option value="Mid-Morning (11am-1pm)">Mid-Morning (11am-1pm)</option>
-                                    <option value="Afternoon (2pm+)">Afternoon (2pm+)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary" style="margin-top: 20px;">Submit to Court Roll</button>
-                    </form>
-                </div>
+                <form id="scheduleForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div><label>Case Number:</label><input type="text" id="caseNum" required style="width: 100%; padding: 8px;"></div>
+                    <div><label>Presiding Judge:</label><input type="text" id="judge" required style="width: 100%; padding: 8px;"></div>
+                    <div><label>Court Location:</label><input type="text" id="court" required style="width: 100%; padding: 8px;"></div>
+                    <div><label>Parties:</label><input type="text" id="parties" required style="width: 100%; padding: 8px;"></div>
+                    <div><label>Session Date:</label><input type="date" id="sDate" required style="width: 100%; padding: 8px;"></div>
+                    <div><label>Time Slot (Max 15):</label>
+                        <select id="sSlot" style="width: 100%; padding: 8px;">
+                            <option>Morning (9am-11am)</option><option>Mid-Morning (11am-1pm)</option><option>Afternoon (2pm+)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="grid-column: span 2;">Submit to Court Roll</button>
+                </form>
             </div>
 
-            <!-- 2. SESSIONS DASHBOARD -->
-            <div id="tab-sessions" class="tab-content" style="display: none;">
+            <!-- SESSIONS TAB -->
+            <div id="tab-sessions" class="card" style="display: none;">
                 <h2>Scheduled Sessions</h2>
                 <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Case Number</th>
-                            <th>Judge</th>
-                            <th>Court</th>
-                            <th>Parties</th>
-                            <th>Date</th>
-                            <th>Slot</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sessionsTableBody">
-                        <!-- Populated by JS -->
-                    </tbody>
+                    <thead><tr><th>Case</th><th>Judge</th><th>Court</th><th>Parties</th><th>Date</th><th>Slot</th><th>Action</th></tr></thead>
+                    <tbody id="sessionsTableBody"></tbody>
                 </table>
             </div>
 
-            <!-- 3. VSQM DASHBOARD -->
-            <div id="tab-vsqm" class="tab-content" style="display: none;">
+            <!-- VSQM TAB -->
+            <div id="tab-vsqm" style="display: none;">
+                <div class="card" style="background: #1a1a2e; color: white;">
+                    <h2 style="color: #f4b400;">Real-Time Network Monitoring</h2>
+                    <p style="color: #ccc;">Note: Cases only appear here if participants have actively joined the video call.</p>
 
-                <!-- LOGIN GATE -->
-                <div id="vsqmLoginGate" class="card" style="max-width: 400px; margin: 0 auto; text-align: center;">
-                    <h3>Secure Access to Judicial Analytics</h3>
-                    <input type="text" id="vUser" placeholder="Username (admin)" style="margin-bottom: 10px;">
-                    <input type="password" id="vPass" placeholder="Password (jsc2026)" style="margin-bottom: 10px;">
-                    <button class="btn-primary" onclick="vsqmLogin()">LOGIN</button>
-                    <p id="vError" style="color: red; display: none;">Access Denied.</p>
-                </div>
-
-                <!-- ACTUAL VSQM ANALYTICS (Hidden until logged in) -->
-                <div id="vsqmAnalytics" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h2>VSQM Predictive Analytics</h2>
-                        <button class="btn-danger" onclick="vsqmLogout()">Logout</button>
-                    </div>
+                    <select id="vsqmCaseSelector" onchange="startMonitoring()" style="width: 100%; padding: 10px; margin-bottom: 20px;">
+                        <option value="">-- Select an Active Room --</option>
+                    </select>
 
                     <div style="display: flex; gap: 20px;">
-                        <!-- Case Selector -->
-                        <div class="card" style="flex: 1;">
-                            <h3>Active Court Rolls</h3>
-                            <select id="vsqmCaseSelector" onchange="startMonitoring()" style="width: 100%; padding: 10px;"></select>
+                        <div style="flex: 2;">
+                            <table class="data-table" style="color: white; border: 1px solid #444;">
+                                <thead style="background: #0f3460;">
+                                    <tr><th>REAL NAME IN CALL</th><th>Latency</th><th>Packet Loss</th><th>Status</th></tr>
+                                </thead>
+                                <tbody id="participantTableBody">
+                                    <tr><td colspan="4">Select a room to see real participants.</td></tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <!-- Health Gauge -->
-                        <div class="card" style="flex: 1; text-align: center; background: #16213e; color: white;">
-                            <h3>Overall Session Health</h3>
-                            <h1 id="vHealthScore" style="font-size: 3rem; margin: 10px 0; color: #4caf50;">--%</h1>
+                        <div style="flex: 1; text-align: center; background: #0f3460; padding: 20px; border-radius: 8px;">
+                            <h3>Overall Health</h3>
+                            <h1 id="vHealthScore" style="font-size: 3rem; color: #4caf50;">--%</h1>
                         </div>
                     </div>
 
-                    <!-- Participant Level Monitoring -->
-                    <div class="card" style="margin-top: 20px; background: #1a1a2e; color: white; border: 1px solid #0f3460;">
-                        <h3>Participant Network Telemetry</h3>
-                        <table class="data-table" style="color: white;">
-                            <thead style="background: #0f3460;">
-                                <tr><th>Participant Name</th><th>Role</th><th>Latency (ms)</th><th>Packet Loss</th><th>Status</th></tr>
-                            </thead>
-                            <tbody id="participantTableBody">
-                                <tr><td colspan="5">Select a case to begin monitoring.</td></tr>
-                            </tbody>
-                        </table>
+                    <div style="margin-top: 20px; background: #111; padding: 15px; border-radius: 8px; font-family: monospace; color: #4caf50;">
+                        <h4 style="margin-top: 0; color: white; border-bottom: 1px solid #444; padding-bottom: 10px;">AI Diagnostics (XGBoost)</h4>
+                        <div id="nlpLogBox" style="height: 120px; overflow-y: auto;">Awaiting telemetry...</div>
                     </div>
-
-                    <!-- AI NLP Log -->
-                    <div class="card" style="margin-top: 20px; background: #111; color: #4caf50; font-family: monospace;">
-                        <h3>Automated Diagnostic Log (NLP)</h3>
-                        <div id="nlpLogBox" style="height: 150px; overflow-y: auto;">Awaiting telemetry...</div>
-                    </div>
-
                 </div>
             </div>
 
@@ -130,99 +92,53 @@
     </div>
 
     <script>
-        // --- NAVIGATION LOGIC ---
         function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.getElementById('tab-scheduling').style.display = 'none';
+            document.getElementById('tab-sessions').style.display = 'none';
+            document.getElementById('tab-vsqm').style.display = 'none';
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
             document.getElementById('tab-' + tabId).style.display = 'block';
             btnElement.classList.add('active');
 
-            if(tabId === 'sessions') loadSessions();
-            if(tabId === 'vsqm' && sessionStorage.getItem('vsqmAuth') === 'true') {
-                document.getElementById('vsqmLoginGate').style.display = 'none';
-                document.getElementById('vsqmAnalytics').style.display = 'block';
-                loadVsqmDropdown();
-            }
+            if (tabId === 'sessions') loadSessions();
+            if (tabId === 'vsqm') loadActiveRooms();
         }
 
-        // --- CLOCK ---
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString() + ' Harare, Zimbabwe'; }, 1000);
-
-        // --- SCHEDULING LOGIC ---
+        // --- SCHEDULING ---
         document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const data = {
-                caseNumber: document.getElementById('caseNum').value,
-                judge: document.getElementById('judge').value,
-                court: document.getElementById('court').value,
-                parties: document.getElementById('parties').value,
-                date: document.getElementById('sDate').value,
-                slot: document.getElementById('sSlot').value
+                caseNumber: document.getElementById('caseNum').value, judge: document.getElementById('judge').value,
+                court: document.getElementById('court').value, parties: document.getElementById('parties').value,
+                date: document.getElementById('sDate').value, slot: document.getElementById('sSlot').value
             };
-
-            const res = await fetch('/api/schedule', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+            const res = await fetch('/api/vsqm/schedule', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
             });
             const result = await res.json();
-
-            if (result.success) {
-                alert("Case scheduled successfully!");
-                document.getElementById('scheduleForm').reset();
-            } else {
-                alert(result.message); // Alerts if > 15 concurrent sessions!
-            }
+            if (result.success) { alert("Case scheduled!"); document.getElementById('scheduleForm').reset(); }
+            else { alert(result.message); } // Fails if > 15
         });
 
-        // --- SESSIONS LOGIC ---
+        // --- SESSIONS ---
         async function loadSessions() {
-            const res = await fetch('/api/sessions');
-            const sessions = await res.json();
+            const res = await fetch('/api/vsqm/scheduled');
+            const data = await res.json();
             const tbody = document.getElementById('sessionsTableBody');
             tbody.innerHTML = '';
-            sessions.forEach(s => {
-                tbody.innerHTML += `<tr>
-                    <td>${s.caseNumber}</td><td>${s.judge}</td><td>${s.court}</td>
-                    <td>${s.parties}</td><td>${s.date}</td><td>${s.slot}</td>
-                    <td><a href="${s.joinLink}" target="_blank" class="btn-primary" style="text-decoration:none; padding:5px 10px;">Launch Call</a></td>
-                </tr>`;
+            data.forEach(s => {
+                tbody.innerHTML += `<tr><td>${s.caseNumber}</td><td>${s.judge}</td><td>${s.court}</td><td>${s.parties}</td><td>${s.date}</td><td>${s.slot}</td><td><a href="${s.joinLink}" target="_blank" class="btn-primary" style="text-decoration:none;">Start</a></td></tr>`;
             });
         }
 
-        // --- VSQM LOGIC ---
-        async function vsqmLogin() {
-            const res = await fetch('/api/vsqm/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: document.getElementById('vUser').value, password: document.getElementById('vPass').value})
-            });
-            const data = await res.json();
-            if(data.success) {
-                sessionStorage.setItem('vsqmAuth', 'true');
-                document.getElementById('vsqmLoginGate').style.display = 'none';
-                document.getElementById('vsqmAnalytics').style.display = 'block';
-                loadVsqmDropdown();
-            } else {
-                document.getElementById('vError').style.display = 'block';
-            }
-        }
-
-        function vsqmLogout() {
-            sessionStorage.removeItem('vsqmAuth');
-            document.getElementById('vsqmAnalytics').style.display = 'none';
-            document.getElementById('vsqmLoginGate').style.display = 'block';
-            clearInterval(vsqmInterval);
-        }
-
-        async function loadVsqmDropdown() {
-            const res = await fetch('/api/sessions');
-            const sessions = await res.json();
+        // --- VSQM ANALYTICS (REAL PEOPLE) ---
+        async function loadActiveRooms() {
+            const res = await fetch('/api/vsqm/active-rooms');
+            const rooms = await res.json();
             const select = document.getElementById('vsqmCaseSelector');
-            select.innerHTML = '<option value="">-- Select a live case to monitor --</option>';
-            sessions.forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.caseNumber} (${s.slot})</option>`;
-            });
+            select.innerHTML = '<option value="">-- Select an Active Room --</option>';
+            rooms.forEach(r => select.innerHTML += `<option value="${r.id}">${r.caseNumber}</option>`);
         }
 
         let vsqmInterval;
@@ -235,28 +151,23 @@
                 const res = await fetch('/api/vsqm/telemetry/' + caseId);
                 const data = await res.json();
 
-                // Update Health Score
                 document.getElementById('vHealthScore').innerText = data.sessionHealth + '%';
                 document.getElementById('vHealthScore').style.color = data.sessionHealth > 75 ? '#4caf50' : '#e94560';
 
-                // Update Participants Table
                 const pBody = document.getElementById('participantTableBody');
                 pBody.innerHTML = '';
                 data.participants.forEach(p => {
-                    const statusColor = (p.latency > 200 || p.loss > 3) ? '#e94560' : '#4caf50';
-                    const statusText = (p.latency > 200 || p.loss > 3) ? 'High Risk' : 'Stable';
+                    const col = (p.status === 'High Risk') ? '#e94560' : '#4caf50';
                     pBody.innerHTML += `<tr>
-                        <td>${p.name}</td><td>${p.role}</td>
-                        <td style="color:${statusColor}; font-weight:bold;">${p.latency}</td>
-                        <td style="color:${statusColor}; font-weight:bold;">${p.loss}%</td>
-                        <td style="color:${statusColor}; font-weight:bold;">${statusText}</td>
+                        <td><strong>${p.name}</strong></td>
+                        <td style="color:${col};">${p.latency}ms</td>
+                        <td style="color:${col};">${p.loss}%</td>
+                        <td style="color:${col};">${p.status}</td>
                     </tr>`;
                 });
 
-                // Update NLP Log
-                const logBox = document.getElementById('nlpLogBox');
-                logBox.innerHTML = data.nlpLog + "<br><br>" + logBox.innerHTML;
-            }, 2000);
+                document.getElementById('nlpLogBox').innerHTML = data.nlpLog + "<br><br>" + document.getElementById('nlpLogBox').innerHTML;
+            }, 2500);
         }
     </script>
 </body>
