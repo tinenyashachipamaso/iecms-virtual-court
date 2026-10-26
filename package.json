@@ -1,7 +1,7 @@
 {
   "name": "iecms-virtual-court",
   "version": "1.0.0",
-  "description": "",
+  "description": "IECMS and VSQM Predictive System",
   "main": "serverVSQM.js",
   "scripts": {
     "start": "node serverVSQM.js"
