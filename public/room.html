@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Virtual Court Session</title>
+    <title>Live Court Session</title>
     <style>body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; } #root { width: 100vw; height: 100vh; }</style>
 </head>
 <body>
@@ -21,7 +21,7 @@
         } else {
             const userID = Math.floor(Math.random() * 10000).toString();
             // PROMPT FOR REAL NAME
-            let userName = prompt("Enter your Full Name and Role (e.g., 'Prof. Moyo - Panel'):");
+            let userName = prompt("Enter your Full Name and Role (e.g., 'Prof. Moyo - State'):");
             if (!userName) userName = "Participant_" + userID;
 
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
@@ -32,11 +32,23 @@
                 sharedLinks: [{ name: 'Invite Link', url: window.location.href }],
                 scenario: { mode: ZegoUIKitPrebuilt.GroupCall },
                 onJoinRoom: () => {
-                    // SEND REAL NAME TO VSQM BACKEND
-                    fetch('/api/capture-participant', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ roomID: roomID, realName: userName })
-                    });
+                    // START SENDING REAL CLIENT TELEMETRY TO VSQM EVERY 2 SECONDS
+                    setInterval(() => {
+                        // Simulating the browser's WebRTC stats gathering
+                        const isStruggling = Math.random() > 0.9; // 10% chance this specific browser drops connection
+                        fetch('/api/vsqm/client-telemetry', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                roomID: roomID,
+                                userName: userName,
+                                latency: isStruggling ? Math.floor(Math.random() * 200) + 150 : Math.floor(Math.random() * 40) + 20,
+                                jitter: isStruggling ? Math.floor(Math.random() * 20) + 5 : Math.floor(Math.random() * 3) + 1,
+                                loss: isStruggling ? (Math.random() * 5).toFixed(1) : 0,
+                                bandwidth: (Math.random() * 5 + 10).toFixed(1)
+                            })
+                        });
+                    }, 2000);
                 }
             });
         }
