@@ -19,6 +19,7 @@ app.post('/create-session', (req, res) => {
     // Create the full URL 
     const host = req.get('host');
     const protocol = req.protocol;
+    // Render uses HTTPS automatically
     const joinLink = `${protocol}://${host}/room.html?roomID=${roomID}&case=${encodeURIComponent(caseNumber)}`;
 
     res.json({ link: joinLink });
