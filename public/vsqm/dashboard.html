@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <title>VSQM Dashboard | Judicial Systems</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .pulse-dot { animation: pulseGlow 2s infinite; }
+    @keyframes pulseGlow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } }
+  </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-200 overflow-x-hidden">
+
+  <!-- Header -->
+  <div class="bg-emerald-900/40 border-b border-emerald-500/30 px-6 py-2.5 flex items-center justify-between">
+    <h1 class="text-base font-bold text-emerald-100 uppercase">Judicial Systems Portal &mdash; VSQM</h1>
+    <span class="flex items-center gap-1.5 bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-500/30 text-xs font-medium text-emerald-300">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span> Live Link
+    </span>
+  </div>
+
+  <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-full md:w-56 bg-slate-900/90 border-r border-slate-800 p-4 flex flex-col gap-2 shrink-0">
+      <div class="text-[11px] font-bold uppercase text-slate-500 px-2 mb-1">Navigation</div>
+
+      <button onclick="switchTab('scheduling', this)" class="nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold border transition-all bg-slate-800/80 text-slate-300 border-slate-700 hover:border-slate-600">
+        <i data-lucide="list-tree" class="w-4 h-4 text-emerald-400"></i> Court Roll
+      </button>
+
+      <button onclick="switchTab('sessions', this)" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold border transition-all bg-slate-800/80 text-slate-300 border-slate-700 hover:border-slate-600">
+        <span class="flex items-center gap-2.5"><i data-lucide="video" class="w-4 h-4 text-sky-400"></i> Sessions</span>
+      </button>
+
+      <button onclick="switchTab('vsqm', this)" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-bold border transition-all bg-emerald-500/10 text-emerald-400 border-emerald-500/30 ring-1 ring-emerald-500/20 active">
+        <span class="flex items-center gap-2.5"><i data-lucide="gauge" class="w-4 h-4 text-emerald-400"></i> VSQM Monitor</span>
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+
+      <!-- 1. SCHEDULING TAB -->
+      <div id="tab-scheduling" class="tab-pane" style="display: none;">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+          <h2 class="text-emerald-400 font-bold mb-4 uppercase">Schedule New Case</h2>
+          <form id="schedForm" class="grid grid-cols-2 gap-4">
+            <div><label class="text-xs text-slate-400">Case Number</label><input type="text" id="cNum" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" required></div>
+            <div><label class="text-xs text-slate-400">Presiding Judge</label><input type="text" id="cJudge" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" required></div>
+            <div><label class="text-xs text-slate-400">Court</label><input type="text" id="cCourt" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" required></div>
+            <div><label class="text-xs text-slate-400">Parties</label><input type="text" id="cParties" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" required></div>
+            <div><label class="text-xs text-slate-400">Date</label><input type="date" id="cDate" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white" required></div>
+            <div>
+              <label class="text-xs text-slate-400">Slot (Max 15)</label>
+              <select id="cSlot" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+                <option>Morning (9am-11am)</option><option>Mid-Morning (11am-1pm)</option><option>Afternoon (2pm+)</option>
+              </select>
+            </div>
+            <button type="submit" class="col-span-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded mt-2">Submit to Court Roll</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2. SESSIONS TAB -->
+      <div id="tab-sessions" class="tab-pane" style="display: none;">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg">
+          <h2 class="text-emerald-400 font-bold mb-4 uppercase">Scheduled Sessions</h2>
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400"><tr><th class="p-2">Case</th><th class="p-2">Judge</th><th class="p-2">Date</th><th class="p-2">Slot</th><th class="p-2">Action</th></tr></thead>
+            <tbody id="sessionsList" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. VSQM TAB -->
+      <div id="tab-vsqm" class="tab-pane">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Live Court Rooms List -->
+          <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h2 class="text-xs font-bold uppercase text-slate-200 mb-3 border-b border-slate-800 pb-2">Active Rooms (Live Users)</h2>
+            <div id="vsqmActiveList" class="space-y-2"></div>
+          </div>
+
+          <!-- Real Participant Telemetry -->
+          <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h2 class="text-xs font-bold uppercase text-slate-200">Participant Telemetry</h2>
+              <span id="selectedCaseLabel" class="text-emerald-400 font-mono font-bold bg-slate-950 px-2 py-1 border border-slate-800 rounded">No Room Selected</span>
+            </div>
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                <tr><th class="p-2">Real Name</th><th class="p-2">Bandwidth</th><th class="p-2">Jitter</th><th class="p-2">Latency</th><th class="p-2">Packet Loss</th><th class="p-2">Status</th></tr>
+              </thead>
+              <tbody id="vsqmTelemetryBody" class="font-mono text-slate-300"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+          <!-- Diagnostics Log -->
+          <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h2 class="text-xs font-bold uppercase text-slate-200 mb-3 border-b border-slate-800 pb-2"><i data-lucide="terminal" class="w-4 h-4 text-emerald-400 inline"></i> XGBoost Diagnostics</h2>
+            <div id="diagnosticTerminal" class="bg-slate-950 font-mono text-xs rounded-lg p-3 text-slate-300 h-32 overflow-y-auto"></div>
+          </div>
+          <!-- Gauge -->
+          <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+            <h2 class="text-xs font-bold uppercase text-slate-200 mb-3 border-b border-slate-800 pb-2">Stability Score</h2>
+            <h1 id="healthScore" class="text-4xl font-bold text-emerald-400 mt-6">--%</h1>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // TAB LOGIC
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.nav-btn').forEach(b => {
+            b.className = "nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold border transition-all bg-slate-800/80 text-slate-300 border-slate-700 hover:border-slate-600";
+        });
+
+        document.getElementById('tab-' + tabId).style.display = 'block';
+        btn.className = "nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-bold border transition-all bg-emerald-500/10 text-emerald-400 border-emerald-500/30 ring-1 ring-emerald-500/20 active";
+
+        if (tabId === 'sessions') fetchSessions();
+    }
+
+    // SCHEDULING LOGIC
+    document.getElementById('schedForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            caseNumber: document.getElementById('cNum').value, judge: document.getElementById('cJudge').value,
+            court: document.getElementById('cCourt').value, parties: document.getElementById('cParties').value,
+            date: document.getElementById('cDate').value, slot: document.getElementById('cSlot').value
+        };
+        const res = await fetch('/api/vsqm/schedule', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const result = await res.json();
+        if (result.success) { alert("Case Added!"); document.getElementById('schedForm').reset(); }
+        else { alert(result.message); } // Alerts if 15 capacity reached!
+    });
+
+    async function fetchSessions() {
+        const res = await fetch('/api/vsqm/sessions');
+        const data = await res.json();
+        const tbody = document.getElementById('sessionsList');
+        tbody.innerHTML = '';
+        data.forEach(s => {
+            tbody.innerHTML += `<tr><td class="p-2">${s.caseNumber}</td><td class="p-2">${s.judge}</td><td class="p-2">${s.date}</td><td class="p-2">${s.slot}</td><td class="p-2"><a href="${s.joinLink}" target="_blank" class="text-emerald-400 hover:underline">Start Room</a></td></tr>`;
+        });
+    }
+
+    // VSQM REAL-TIME LOGIC
+    let selectedRoomId = null;
+    let liveDatabase = {};
+
+    async function fetchVSQMData() {
+        const res = await fetch('/api/vsqm/livedata');
+        liveDatabase = await res.json();
+
+        // Update Sidebar List
+        const list = document.getElementById('vsqmActiveList');
+        list.innerHTML = '';
+        const rooms = Object.keys(liveDatabase);
+
+        if (rooms.length === 0) {
+            list.innerHTML = "<div class='text-slate-500 text-xs p-2'>Waiting for participants...</div>";
+            document.getElementById('vsqmTelemetryBody').innerHTML = "";
+            document.getElementById('selectedCaseLabel').innerText = "No Room Selected";
+            return;
+        }
+
+        rooms.forEach(id => {
+            const room = liveDatabase[id];
+            const isSel = id === selectedRoomId;
+            const btn = document.createElement('button');
+            btn.onclick = () => { selectedRoomId = id; updateVSQMUI(); };
+            btn.className = `w-full text-left p-2.5 rounded-lg border text-xs font-mono mb-2 ${isSel ? 'bg-slate-800 border-emerald-500 text-white' : 'bg-slate-950/40 border-slate-800 text-slate-400'}`;
+            btn.innerText = room.title;
+            list.appendChild(btn);
+        });
+
+        if (selectedRoomId && liveDatabase[selectedRoomId]) updateVSQMUI();
+    }
+
+    function updateVSQMUI() {
+        const room = liveDatabase[selectedRoomId];
+        document.getElementById('selectedCaseLabel').innerText = room.title;
+        document.getElementById('healthScore').innerText = room.stabilityScore + '%';
+
+        const tbody = document.getElementById('vsqmTelemetryBody');
+        tbody.innerHTML = '';
+        room.participants.forEach(p => {
+            const color = p.status === 'Warning' ? 'text-red-400 font-bold' : 'text-slate-300';
+            const badge = p.status === 'Warning' ? '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded">Risk</span>' : '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">Optimal</span>';
+            tbody.innerHTML += `<tr class="border-b border-slate-800/50 hover:bg-slate-800/40"><td class="p-2 text-white font-sans">${p.name}</td><td class="p-2 ${color}">${p.bandwidth} Mbps</td><td class="p-2 ${color}">${p.jitter}ms</td><td class="p-2 ${color}">${p.latency}ms</td><td class="p-2 ${color}">${p.loss}%</td><td class="p-2">${badge}</td></tr>`;
+        });
+
+        const term = document.getElementById('diagnosticTerminal');
+        term.innerHTML = '';
+        if (room.diagnostics.length > 0) {
+            room.diagnostics.forEach(log => { term.innerHTML += `<div><span class="text-red-400">${log.time}</span> - ${log.text}</div>`; });
+        } else {
+            term.innerHTML = '<div class="text-emerald-400">System Nominal. NLP parsing active.</div>';
+        }
+    }
+
+    setInterval(fetchVSQMData, 2000);
+  </script>
+</body>
+</html>

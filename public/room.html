@@ -2,58 +2,42 @@
 <html>
 <head>
     <title>Virtual Court Session</title>
-    <style>
-        body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; }
-        #root { width: 100vw; height: 100vh; }
-    </style>
+    <style>body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #222; } #root { width: 100vw; height: 100vh; }</style>
 </head>
 <body>
     <div id="root"></div>
-
-    <!-- Import ZegoCloud Prebuilt UI -->
     <script src="https://unpkg.com/@zegocloud/zego-uikit-prebuilt/zego-uikit-prebuilt.js"></script>
-
     <script>
-        // 1. Extract Room ID and Case Number from the URL
         const urlParams = new URLSearchParams(window.location.search);
         const roomID = urlParams.get('roomID');
         const caseNumber = urlParams.get('case') || 'Virtual Court';
-
-        // Update the tab title to show the case number
         document.title = caseNumber + " - Live Session";
 
-        // ✅ YOUR REAL ZEGO CREDENTIALS ARE HERE
         const appID = 1189442610;
         const serverSecret = "b36362d2bf1b5363a247cab305195da3";
 
         if (!roomID) {
-            document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px;'>Invalid Meeting Link. Please request a new link from the court clerk.</h2>";
+            document.body.innerHTML = "<h2 style='color:white; text-align:center;'>Invalid Meeting Link.</h2>";
         } else {
-            // Generate a random ID for this specific user
             const userID = Math.floor(Math.random() * 10000).toString();
+            // PROMPT FOR REAL NAME
+            let userName = prompt("Enter your Full Name and Role (e.g., 'Prof. Moyo - Panel'):");
+            if (!userName) userName = "Participant_" + userID;
 
-            // Ask user for their name to display in the call
-            let userName = prompt("Welcome to IECMS Virtual Court.\n\nPlease enter your Full Name and Role (e.g., 'John Doe - Defense'):");
-            if (!userName || userName.trim() === "") userName = "Participant_" + userID;
-
-            // Generate the access token
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, userID, userName);
-
-            // Initialize the Video Call UI
             const zp = ZegoUIKitPrebuilt.create(kitToken);
 
             zp.joinRoom({
                 container: document.querySelector("#root"),
-                sharedLinks: [{
-                    name: 'Invite Link',
-                    url: window.location.href,
-                }],
-                scenario: {
-                    mode: ZegoUIKitPrebuilt.GroupCall, // Group call allows many people
-                },
-                showScreenSharingButton: true,
-                turnOnCameraWhenJoining: false, // Start with camera off for privacy
-                turnOnMicrophoneWhenJoining: false, // Start with mic off
+                sharedLinks: [{ name: 'Invite Link', url: window.location.href }],
+                scenario: { mode: ZegoUIKitPrebuilt.GroupCall },
+                onJoinRoom: () => {
+                    // SEND REAL NAME TO VSQM BACKEND
+                    fetch('/api/capture-participant', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ roomID: roomID, realName: userName })
+                    });
+                }
             });
         }
     </script>
