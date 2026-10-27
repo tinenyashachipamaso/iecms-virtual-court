@@ -1,0 +1,137 @@
+       <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSQM | IT Admin Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a; /* Dark slate background matching the Tailwind theme */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+        .login-wrapper { text-align: center; }
+        .title {
+            color: #f8fafc;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+        .login-card {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 350px;
+            margin: 0 auto;
+            border: 1px solid #334155;
+        }
+        .gauge-icon { font-size: 50px; margin-bottom: 10px; }
+        .subtitle { color: #94a3b8; margin-bottom: 25px; font-weight: 600; font-size: 15px;}
+        .input-group { margin-bottom: 20px; text-align: left; }
+        input {
+            width: 100%; padding: 12px; border: 1px solid #334155;
+            border-radius: 6px; box-sizing: border-box; font-size: 14px;
+            background: #0f172a;
+            color: white;
+        }
+        input:focus { outline: none; border-color: #10b981; background: #1e293b; }
+        .btn-login {
+            width: 100%; padding: 14px;
+            background: linear-gradient(90deg, #059669 0%, #10b981 100%);
+            color: white; border: none; border-radius: 6px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: opacity 0.2s;
+        }
+        .btn-login:hover { opacity: 0.9; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-top: 15px; display: none; font-weight: bold; }
+
+        /* Loading spinner */
+        .loader { display: none; border: 3px solid #334155; border-top: 3px solid #10b981; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="title">
+            <span style="color: #10b981;">VSQM</span> | Judicial Systems
+        </div>
+
+        <div class="login-card">
+            <div class="gauge-icon">📟</div>
+            <div class="subtitle">Secure Analytics Portal</div>
+
+            <div class="input-group">
+                <input type="text" id="username" placeholder="👤 Username (admin)">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="🔒 Password (jsc2026)">
+            </div>
+
+            <button class="btn-login" id="loginBtn" onclick="attemptLogin()">LOGIN TO DASHBOARD</button>
+            <div class="loader" id="loadingSpinner"></div>
+
+            <div id="errorMsg" class="error-msg">❌ Invalid username or password.</div>
+        </div>
+    </div>
+
+    <script>
+        async function attemptLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const loginBtn = document.getElementById('loginBtn');
+            const spinner = document.getElementById('loadingSpinner');
+
+            // Reset UI
+            errorDiv.style.display = 'none';
+            loginBtn.style.display = 'none';
+            spinner.style.display = 'block';
+
+            try {
+                const res = await fetch('/api/vsqm/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Save the secure token in the browser's memory
+                    sessionStorage.setItem('vsqm_auth', data.token);
+
+                    // Redirect to the dashboard inside the /vsqm/ folder
+                    window.location.href = '/vsqm/dashboard.html';
+                } else {
+                    // Show error and restore button
+                    spinner.style.display = 'none';
+                    loginBtn.style.display = 'block';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                spinner.style.display = 'none';
+                loginBtn.style.display = 'block';
+                errorDiv.innerText = "❌ Server error. Please try again.";
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Allow pressing "Enter" to submit
+        document.getElementById('password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                attemptLogin();
+            }
+        });
+    </script>
+</body>
+</html>
