@@ -9,7 +9,8 @@
 <body>
     <div class="top-nav">
         <h2>IECMS Integrated Electronic Case Management System</h2>
-        <a href="/loginVSQM.html" target="_blank" style="background: #111; color: #4caf50; border: 1px solid #4caf50; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: bold;">IT Admin Portal</a>
+        <!-- SECRET TRAPDOOR TO ADMIN PORTAL (100% Invisible) -->
+        <a href="/loginVSQM.html" target="_blank" style="opacity: 0; padding: 15px 30px; cursor: default; user-select: none;">Secret</a>
     </div>
 
     <div class="main-container">
@@ -31,7 +32,6 @@
                 <input type="text" id="generatedLink" readonly>
                 <button type="button" class="btn-copy" onclick="copyLink()">Copy Link</button>
                 <br><br>
-                <!-- Changed text to Start Session Now -->
                 <a href="#" id="joinBtn" class="btn-join" target="_blank">Start Session Now</a>
             </div>
         </div>
@@ -41,7 +41,7 @@
         document.getElementById('sessionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // --- FIX 2: DATE/TIME VALIDATION ---
+            // DATE/TIME VALIDATION
             const dateInput = document.getElementById('sessionDate').value;
             const selectedDate = new Date(dateInput);
             const now = new Date();
@@ -62,7 +62,6 @@
             // The link copied for others (NO host privileges)
             document.getElementById('generatedLink').value = data.link;
 
-            // --- FIX 1: HOST BUTTON ---
             // The clerk's button gets a secret &role=Host parameter
             document.getElementById('joinBtn').href = data.link + "&role=Host";
         });
