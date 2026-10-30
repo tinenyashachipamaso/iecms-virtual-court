@@ -86,7 +86,7 @@ app.get('/api/vsqm/livedata', (req, res) => {
 
 // Admin Login
 app.post('/api/vsqm/login', (req, res) => {
-    if (req.body.username === 'admin' && req.body.password === 'jsc2026') res.json({ success: true, token: 'token' });
+    if (req.body.username === 'wmngoshi@jsc.org.com' && req.body.password === 'ngoshi2026') res.json({ success: true, token: 'token' });
     else res.status(401).json({ success: false });
 });
 

@@ -73,13 +73,13 @@
             <div id="vsqmActiveList"></div>
           </div>
           <div class="col-span-2 bg-slate-900 p-4 border border-slate-800 rounded-xl">
-            <h2 class="text-xs font-bold uppercase text-slate-200 mb-3 flex justify-between">Real Participant Telemetry <span id="selectedCaseLabel" class="text-emerald-400">No Room</span></h2>
+            <h2 class="text-xs font-bold uppercase text-slate-200 mb-3 flex justify-between"> Participant Telemetry <span id="selectedCaseLabel" class="text-emerald-400">No Room</span></h2>
             <table class="w-full text-left text-xs"><tbody id="vsqmTelemetryBody" class="font-mono"></tbody></table>
           </div>
         </div>
         <div class="grid grid-cols-3 gap-6 mt-6">
             <div class="col-span-2 bg-slate-900 p-4 border border-slate-800 rounded-xl">
-                <h2 class="text-xs font-bold uppercase text-slate-200 mb-3">XGBoost Diagnostics</h2>
+                <h2 class="text-xs font-bold uppercase text-slate-200 mb-3">Session Diagnostics</h2>
                 <div id="diagnosticTerminal" class="font-mono text-xs text-slate-300 h-32 overflow-y-auto"></div>
             </div>
             <div class="col-span-1 bg-slate-900 p-4 border border-slate-800 rounded-xl text-center">
@@ -181,7 +181,7 @@
         list.innerHTML = '';
         const rooms = Object.keys(liveDatabase);
 
-        if (rooms.length === 0) { list.innerHTML = "<p class='text-slate-500'>Waiting for REAL users to join...</p>"; return; }
+        if (rooms.length === 0) { list.innerHTML = "<p class='text-slate-500'>Waiting for users to join...</p>"; return; }
 
         rooms.forEach(id => {
             const btn = document.createElement('button');
