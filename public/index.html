@@ -13,7 +13,10 @@
         <a href="/loginVSQM.html" target="_blank" style="opacity: 0; padding: 15px 30px; cursor: default; user-select: none;">Secret</a>
     </div>
 
-    <div class="main-container">
+    <!-- Added flex-direction: column so cards stack nicely -->
+    <div class="main-container" style="flex-direction: column; align-items: center; gap: 20px;">
+
+        <!-- CARD 1: Quick Create (Original) -->
         <div class="card">
             <h3>Create New Virtual Session</h3>
             <form id="sessionForm">
@@ -35,20 +38,30 @@
                 <a href="#" id="joinBtn" class="btn-join" target="_blank">Start Session Now</a>
             </div>
         </div>
+
+        <!-- CARD 2: NEW! The 5-Minute Radar for Scheduled Cases -->
+        <div class="card" id="upcomingCard" style="display: none; border-left: 5px solid #1e7040;">
+            <h3 style="margin-top: 0; color: #1e7040;">🔴 Scheduled Court Rolls Ready</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">The following sessions scheduled by the Administration are within the 5-minute window. Please start them to allow participants to join.</p>
+            <div id="upcomingList">
+                <!-- Javascript will inject ready cases here -->
+            </div>
+        </div>
+
     </div>
 
     <script>
+        // --- 1. ORIGINAL QUICK-CREATE LOGIC ---
         document.getElementById('sessionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // DATE/TIME VALIDATION
             const dateInput = document.getElementById('sessionDate').value;
             const selectedDate = new Date(dateInput);
             const now = new Date();
 
             if (selectedDate < now) {
                 alert("❌ Invalid Date: You cannot schedule a court session for a past date or time.");
-                return; // Stops the form from submitting!
+                return;
             }
 
             const caseNumber = document.getElementById('caseNumber').value;
@@ -58,11 +71,7 @@
             const data = await response.json();
 
             document.getElementById('linkContainer').classList.remove('hidden');
-
-            // The link copied for others (NO host privileges)
             document.getElementById('generatedLink').value = data.link;
-
-            // The clerk's button gets a secret &role=Host parameter
             document.getElementById('joinBtn').href = data.link + "&role=Host";
         });
 
@@ -71,6 +80,66 @@
             linkInput.select(); document.execCommand('copy');
             alert("Link copied! (Participants will join as attendees)");
         }
+
+        // --- 2. NEW LOGIC: THE 5-MINUTE RADAR ---
+        async function checkScheduledSessions() {
+            try {
+                // Fetch the schedule created by the VSQM Admin
+                const res = await fetch('/api/vsqm/sessions');
+                const sessions = await res.json();
+
+                const upcomingList = document.getElementById('upcomingList');
+                const upcomingCard = document.getElementById('upcomingCard');
+
+                let html = '';
+                let hasReadySessions = false;
+                const now = new Date();
+
+                sessions.forEach(s => {
+                    // Combine date and time to do the math
+                    const sessionTime = new Date(`${s.date}T${s.time}`);
+                    const diffMinutes = (sessionTime - now) / 60000;
+
+                    // If it is 5 minutes BEFORE the start time, or anytime AFTER the start time
+                    if (diffMinutes <= 5 && diffMinutes >= -120) { // Visible for up to 2 hours
+                        hasReadySessions = true;
+
+                        // Parse parties to show who is expected
+                        let partiesText = "No parties listed";
+                        if (s.parties && s.parties.length > 0) {
+                            partiesText = s.parties.map(p => p.name).join(', ');
+                        }
+
+                        html += `
+                            <div style="border: 1px solid #e0e0e0; padding: 12px; border-radius: 6px; margin-bottom: 10px; background: #f9fafb;">
+                                <strong style="font-size: 16px;">${s.caseNumber}</strong><br>
+                                <span style="font-size: 13px; color: #444;"><strong>Time:</strong> ${s.time} | <strong>Judge:</strong> ${s.judge}</span><br>
+                                <span style="font-size: 12px; color: #777;"><strong>Expected:</strong> ${partiesText}</span><br>
+
+                                <!-- IMPORTANT: Gives the clerk the Host powers -->
+                                <a href="${s.joinLink}&role=Host" target="_blank" style="display: inline-block; background: #1e7040; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 10px; font-size: 13px;">
+                                    Start Session as Clerk
+                                </a>
+                            </div>
+                        `;
+                    }
+                });
+
+                // Show or hide the card based on if anything is within 5 minutes
+                if (hasReadySessions) {
+                    upcomingList.innerHTML = html;
+                    upcomingCard.style.display = 'block';
+                } else {
+                    upcomingCard.style.display = 'none';
+                }
+            } catch (e) {
+                console.error("Radar check failed (Normal during bootup)");
+            }
+        }
+
+        // Run the radar every 3 seconds to ensure real-time accuracy!
+        setInterval(checkScheduledSessions, 3000);
+        checkScheduledSessions(); // Run immediately on load
     </script>
 </body>
 </html>
